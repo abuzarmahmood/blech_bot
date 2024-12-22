@@ -27,4 +27,9 @@ Agents 1,2 and 3 can be implemented in a nested fashion, where Agent 1 calls Age
 - - Search for a string in a file and replace it with another string
 - Code execution tool
 - - Execute code snippets in a specified environment
-
+- Web search tool
+- - Search for information on the web
+- Git check tool
+- - Check the status/commit of a git repository
+- Git change tool
+- - Change the statu/commit of a git repository
