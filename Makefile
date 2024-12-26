@@ -1,11 +1,14 @@
-.PHONY: venv activate clean
+.PHONY: venv activate clean install
 
 VENV_NAME=venv
 PYTHON=python3
 
-venv:
+venv: install
+
+install:
 	$(PYTHON) -m venv $(VENV_NAME)
-	@echo "Virtual environment created. Run 'make activate' to activate it"
+	./$(VENV_NAME)/bin/pip install -r requirements.txt
+	@echo "Virtual environment created and requirements installed. Run 'make activate' to activate it"
 
 activate:
 	@echo "To activate the virtual environment, run:"
