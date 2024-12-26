@@ -9,7 +9,7 @@ def get_blech_clust_path() -> str:
     """
     Return path to blech_clust repo
     """
-    return '/home/abuzarmahmood/projects/blech_clust'
+    return open('blech_clust_path.txt', 'r').read().strip() 
 
 def search_and_replace(
         file_path : str,
