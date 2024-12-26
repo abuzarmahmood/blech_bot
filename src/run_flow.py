@@ -33,9 +33,6 @@ from tools import (
 # Create agents
 ##############################
 
-# venv_dir = ".env_llm"
-# venv_context = create_virtual_env(venv_dir)
-
 tool_funcs = [
     get_blech_clust_path,
     search_and_replace,
@@ -53,60 +50,10 @@ executor = LocalCommandLineCodeExecutor(
     work_dir="coding",
     functions=tool_funcs,
 )
-# print(
-#     executor.execute_code_blocks(
-#         code_blocks=[CodeBlock(language="python", code="import sys; print(sys.executable)")])
-# )
-# # exit()
 
 def reflection_message(recipient, messages, sender, config):
     return f'''Review the following content. 
             \n\n {recipient.chat_messages_for_summary(sender)[-1]['content']}'''
-
-# basic_reviewer = AssistantAgent(
-#     name="Basic_Information_Reviewer",
-#     llm_config=llm_config,
-#     system_message="""
-#     You are a helpful and very capable agent for gathering initial information
-#     for any blech_clust related issues.
-#     If you are asked a question, make sure you gather
-#     1) what commit of blech_clust the issue is at
-#     2) what files are involved in the issue
-#     If this information is not initially provided, ask the user to provide it
-#     """
-# )
-# 
-# code_reviewer = AssistantAgent(
-#     name="Code_Research_Agent",
-#     llm_config=llm_config,
-#     system_message=f"""
-#     You are a helpful and very capable agent for gathering code and
-#     documentation for the blech_clust issue at hand.
-#     You are provided with the following tools: {[x.__name__ for x in tool_funcs]}
-#     You should extract documentation and code for the relevant issue and provide it.
-#     """
-# )
-# 
-# meta_reviewer = AssistantAgent(
-#     name="Meta_Reviewer",
-#     llm_config=llm_config,
-#     system_message="""
-#     You are a meta reviewer, you aggregate and review
-#     the work of other reviewers and give a final recommendation for how the code should
-#     be edited
-#     """
-# )
-
-# code_editor = autogen.AssistantAgent(
-#     name="Code_Edit_Suggestion_Agent",
-#     llm_config=llm_config,
-#     system_message="""
-#     You are a helpful and very capable agent for executing edits to code and testing
-#     whether the edits resolved the issue.
-#     You are provided with tools to edit code given snippts of code provided to you.
-#     Provide exact snippets in SEARCH and REPLACE clauses.
-# """
-# )
 
 system_message = """
 You are a helpful AI assistant called "BlechBot", that edits code to solve issues for the blech_clust repo.
@@ -137,42 +84,15 @@ code_writer_agent = AssistantAgent(
     system_message = system_message,
 )
 
-# code_writer_agent_system_message = code_writer_agent.system_message
 formatted_funcs = executor.format_functions_for_prompt()
 
-# 
-# code_writer_agent = AssistantAgent(
-#     name="code_writer_agent",
-#     llm_config=llm_config,
-#     code_execution_config=False,
-#     human_input_mode="NEVER",
-#     system_message = code_writer_agent_system_message,
-# )
-
-
-# Code executor agent
-# code_executor_agent = UserProxyAgent( 
 code_executor_agent = ConversableAgent(
     name="code_executor_agent",
     llm_config=False,
-    # code_execution_config={"executor": executor},
-    # code_execution_config={"work_dir":"coding", "use_docker":False}
     human_input_mode="ALWAYS",
     default_auto_reply=
     "Please continue. If everything is done, reply 'TERMINATE'.",
 )
-
-# tool_reviewer = AssistantAgent(
-#      name="Tool_Reviewer",
-#      llm_config=llm_config,
-#      system_message=f"""
-#      You are a helpful and very capable agent for reviewing the tools used by the code writer.
-#      You are provided with the following tools: {[x.__name__ for x in tool_funcs]}
-#      You should review the tools used by the code writer and provide feedback on whether all appropriate tools were used. 
-#      """,
-#      default_auto_reply="Please continue. If everything is done, reply 'TERMINATE'.",
-#      )
-
 
 # Register the tool signature with the assistant agent.
 for this_func in tool_funcs:
@@ -182,136 +102,11 @@ for this_func in tool_funcs:
             )(this_func)
     code_executor_agent.register_for_execution(
             name=this_func.__name__)(this_func)
-    # tool_reviewer.register_for_llm(
-    #         name = this_func.__name__, 
-    #         description = this_func.__doc__,
-    #         )(this_func)
-
-# # Register the tool function with the user proxy agent.
-# user_proxy.register_for_execution(name="calculator")(calculator)
-
-
-##############################
-# Create chats
-##############################
-
-# review_chats = [ # This is our nested chat
-#     {
-#      "recipient": basic_reviewer, 
-#      "message": reflection_message, 
-#      "summary_method": "reflection_with_llm",
-#      "summary_args": 
-#         {
-#         "summary_prompt" : 
-#         "Return review into as JSON object only:"
-#         "{'Reviewer': '', 'Review': ''}. Here Reviewer should be your role",
-#         },
-#      "max_turns": 1},
-#     
-#     {
-#      "recipient": code_reviewer, 
-#      "message": reflection_message, 
-#      "summary_method": "reflection_with_llm",
-#      "summary_args": {"summary_prompt" : 
-#         "Return review into as JSON object only:"
-#         "{'Reviewer': '', 'Review': ''}.",},
-#      "max_turns": 1},
-#        
-#      {"recipient": meta_reviewer, 
-#       "message": "Aggregrate feedback from all reviewers and give final suggestions on the writing.", 
-#       "max_turns": 1},
-# ]
-# 
-# 
-
-# review_chats = [
-#         {
-#             "recipient": tool_reviewer,
-#             message: "Please make sure this plan of actions uses all the tools/functions avaiable to us so as to ask the user for minimal input.",
-#             "max_turns": 1,
-#             },
-#         ]
-# 
-# code_writer_agent.register_nested_chats(
-#     review_chats,
-#     trigger=code_executor_agent,
-# )
 
 
 ##############################
 # Start the chat
 ##############################
-
-message = """
-I got the following error in blech_clust, can you edit the code to help me debug it?
-
-(blech_clust) cmazzio@cmazzio-Precision-Tower-5810:~/Desktop/blech_clust$ python blech_units_characteristics.py $DIR
-/home/cmazzio/anaconda3/envs/blech_clust/lib/python3.8/site-packages/tqdm/std.py:666: FutureWarning: The Panel class is removed from pandas. Accessing it from the top-level namespace will also be removed in the next version
-  from pandas import Panel
-============================================================
-Attempting blech_units_characteristics.py, started at 2024-12-13 13:56:52
-============================================================
-Loading spikes
-Spike trains loaded from following dig-ins
-0. /spike_trains/dig_in_14 (Group) ''
-1. /spike_trains/dig_in_15 (Group) ''
-2. /spike_trains/dig_in_16 (Group) ''
-Traceback (most recent call last):
-  File "blech_units_characteristics.py", line 73, in <module>
-    this_dat.get_sequestered_data()
-  File "/home/cmazzio/Desktop/blech_clust/utils/ephys_data/ephys_data.py", line 1065, in get_sequestered_data
-    self.get_sequestered_spikes()
-  File "/home/cmazzio/Desktop/blech_clust/utils/ephys_data/ephys_data.py", line 1005, in get_sequestered_spikes
-    this_seq_spikes = self.spikes[taste_ind][this_row['trial_inds']]
-IndexError: list index out of range
-"""
-
-# chat_result = code_executor_agent.initiate_chat(
-#     code_writer_agent,
-#     message=message
-# )
-
-###############################
-# Create chat structure such that
-# 1) code_writer_agent suggests a plan of action
-# 2) tool_reviewer agent makes sure all tools are being used
-# 3) if so, code is sent to code_exectuor_agent
-
-# chat_structure = [
-#          # {
-#          #     "recipient": code_writer_agent,
-#          #     "message": message,
-#          #     "max_turns": 1,
-#          #     },
-#         {
-#             "recipient": tool_reviewer,
-#             "message": "Please make sure this plan of actions uses all the tools/functions avaiable to us so as to ask the user for minimal input.",
-#             "summary_method": "last_msg",
-#             "max_turns": 1,
-#             },
-#          # {
-#          #     "recipient": code_writer_agent,
-#          #     "message": message,
-#          #     "max_turns": 1,
-#          #     },
-#          # {
-#          #     "recipient": code_executor_agent,
-#          #     "message": "Please execute the code to debug the error.",
-#          #     "max_turns": 1,
-#         ]
-# 
-# # code_writer_agent.register_nested_chats(
-# #     chat_structure,
-# #     trigger= lambda sendor : sendor == code_executor_agent,
-# #     )
-# 
-# code_executor_agent.register_nested_chats(
-#     chat_structure,
-#     trigger = code_writer_agent,
-#     )
-
-
-# message = input("Enter message: ")
 
 message += f"""
 {formatted_funcs}
