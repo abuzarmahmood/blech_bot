@@ -70,6 +70,27 @@ def search_and_replace(
     print('Search and replace successful')
     return True
 
+def readlines(
+        file_path : str,
+        start_line : int,
+        end_line : int,
+        ) -> str:
+    """
+    Read lines from a file
+
+    Inputs:
+        - file_path : Path to file
+        - start_line : Start line
+        - end_line : End line
+
+    Returns:
+        - Lines from file
+    """
+    with open(file_path, 'r') as file:
+        lines = file.readlines()
+
+    return "".join(lines[start_line:end_line])
+
 def listdir(
         directory : str, 
         extension : str = None, 

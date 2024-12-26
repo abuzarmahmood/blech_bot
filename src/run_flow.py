@@ -35,6 +35,7 @@ from tools import (
     get_blech_clust_path,
     search_and_replace,
     get_func_code_3,
+    readlines,
     listdir,
     search_for_file,
     readfile,
@@ -53,12 +54,13 @@ if blech_clust_path == '':
 tool_funcs = [
     get_blech_clust_path,
     search_and_replace,
+    get_func_code_3,
+    readlines,
     listdir,
     search_for_file,
     readfile,
     get_current_git_commit,
     change_git_commit,
-    get_func_code_3,
     ]
 
 executor = LocalCommandLineCodeExecutor(
