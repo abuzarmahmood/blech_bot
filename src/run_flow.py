@@ -17,9 +17,18 @@ from autogen.coding import CodeBlock, LocalCommandLineCodeExecutor
 from autogen import ConversableAgent, AssistantAgent, UserProxyAgent
 from autogen.code_utils import create_virtual_env
 from pprint import pprint as pp
+import datetime
 
 # Start logging with logger_type and the filename to log to
-logging_session_id = autogen.runtime_logging.start(logger_type="file", config={"filename": "runtime.log"})
+# Get username
+user = os.path.basename(os.path.expanduser('~'))
+machine = os.uname().nodename
+timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+log_filename = f"runtime_{user}_{machine}_{timestamp}.log"
+logging_session_id = autogen.runtime_logging.start(
+        logger_type="file", 
+        config={"filename": log_filename},
+        )
 print("Logging session ID: " + str(logging_session_id))
 
 from tools import (
@@ -32,6 +41,10 @@ from tools import (
     get_current_git_commit,
     change_git_commit,
 )
+
+blech_clust_path = get_blech_clust_path()
+if blech_clust_path == '':
+    raise ValueError("Blech clust path not found, please set the path in the src directory")
 
 ##############################
 # Create agents
@@ -112,13 +125,22 @@ for this_func in tool_funcs:
 # Start the chat
 ##############################
 
-message = input("Enter the message to start the chat: ")
+
+print('Enter the message for the code writer agent: (type END to finish)')
+lines = []
+while True:
+    line = input()
+    if line == 'END':
+        break
+    lines.append(line)
+
+message = '\n'.join(lines)
 
 message += f"""
 {formatted_funcs}
 
-As far as possible, 
-1) avoid listing ALL files, 
+As far as possible, avoid the following: 
+1) listing ALL files, 
 2) reading full files,
 3) asking the user to make changes to the code.
 """
@@ -127,5 +149,23 @@ chat_result = code_executor_agent.initiate_chat(
     code_writer_agent,
     message=message,
         )
+
+usage_including_cached_inference = chat_result.cost['usage_including_cached_inference']
+total_cost = usage_including_cached_inference['total_cost']
+print(f"Total cost of session: {total_cost:.2f} USD")
+
+rating_msg = "Please rate the assistant on a scale of 1-5 (higher = better): "
+rating = input(rating_msg)
+while not rating.isdigit() or int(rating) not in range(1, 6):
+    rating = input(rating_msg)
+
+# Ask for any feedback
+print("Please provide any feedback for the assistant: (type END to finish)")
+lines = []
+while True:
+    line = input()
+    if line == 'END':
+        break
+    lines.append(line)
 
 autogen.runtime_logging.stop()
