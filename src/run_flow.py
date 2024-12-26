@@ -16,93 +16,48 @@ from autogen.code_utils import create_virtual_env
 from autogen.coding import CodeBlock, LocalCommandLineCodeExecutor
 from autogen import ConversableAgent, AssistantAgent, UserProxyAgent
 from autogen.code_utils import create_virtual_env
+from pprint import pprint as pp
 
 from tools import (
     get_blech_clust_path,
     search_and_replace,
+    get_func_code_3,
     listdir,
+    search_for_file,
     readfile,
     get_current_git_commit,
-    change_git_commit
+    change_git_commit,
 )
-
-
-def get_func_code(
-        module_path : str,
-        func_name : str,
-        ) -> str:
-    """Get the code for a function
-    Needs to load the module and get the source code for the function
-
-    Inputs:
-        - module_path : Path to module
-        - func_name : Name of function
-    
-    Returns:
-        - Code for function
-    """
-    import inspect
-    import importlib.util
-    spec = importlib.util.spec_from_file_location("module.name", module_path)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    func = getattr(module, func_name)
-    return inspect.getsource(func)
-
-def get_func_code_2(
-        module_path : str,
-        func_name : str,
-        ) -> str:
-    """Use ast to get the code for a function
-
-    Inputs:
-        - module_path : Path to module
-        - func_name : Name of function
-
-    Returns:
-        - Code for function
-    """
-    import ast
-    with open(module_path, 'r') as file:
-        tree = ast.parse(file.read())
-    wanted_func = None
-    for node in tree.body:
-        if isinstance(node, ast.FunctionDef) and node.name == func_name:
-            wanted_func = node
-            break
-    if wanted_func is None:
-        return "Function not found, it may be a class method or not in the file"
-    else:
-        return ast.unparse(wanted_func)
-
 
 ##############################
 # Create agents
 ##############################
 
-venv_dir = ".env_llm"
-venv_context = create_virtual_env(venv_dir)
+# venv_dir = ".env_llm"
+# venv_context = create_virtual_env(venv_dir)
 
 tool_funcs = [
     get_blech_clust_path,
     search_and_replace,
     listdir,
+    search_for_file,
     readfile,
     get_current_git_commit,
     change_git_commit,
+    get_func_code_3,
     ]
-tool_funcs.append(get_func_code_2)
 
 executor = LocalCommandLineCodeExecutor(
-    virtual_env_context=venv_context,
+    # virtual_env_context=venv_context,
     timeout=200,
     work_dir="coding",
     functions=tool_funcs,
 )
-print(
-    executor.execute_code_blocks(
-        code_blocks=[CodeBlock(language="python", code="import sys; print(sys.executable)")])
-)
+# print(
+#     executor.execute_code_blocks(
+#         code_blocks=[CodeBlock(language="python", code="import sys; print(sys.executable)")])
+# )
+# # exit()
 
 def reflection_message(recipient, messages, sender, config):
     return f'''Review the following content. 
@@ -158,9 +113,9 @@ You are a helpful AI assistant called "BlechBot", that edits code to solve issue
 The code is located at `/home/abuzarmahmood/projects/blech_clust`
 Solve tasks using your coding and language skills.
 If you are asked about blech_clust with a different path, assume it is the same repository, and adjust paths to point to the local repository.
-If you are provided with error traces, suggest solutions only after reading the code from the files present in the error trace. Use the python functions provided to you to read the files and edit them as necessary to debug the issue.
+If you are provided with error traces, suggest solutions only after reading the code from the files present in the error trace. Use the python functions provided to you to read the files and edit them as necessary to debug the issue. If suggesting changes to code, always add comments to show where you have made changes and why.
  Always make sure you are using all the tools available to you so as to ask the user to do minimal tasks.
-You have 
+ blech_clust is a very big repository. As far as possible, avoid listing ALL files, or reading full files.
 In the following cases, suggest python code (in a python coding block) or shell script (in a sh coding block) for the user to execute.
     1. When you need to collect info, use the code to output the info you need, for example, browse or search the web, download/read a file, print the content of a webpage or a file, get the current date/time, check the operating system. After sufficient info is printed and the task is ready to be solved based on your language skill, you can solve the task by yourself.
     2. When you need to perform some task with code, use the code to perform the task and output the result. Finish the task smartly.
@@ -183,7 +138,8 @@ code_writer_agent = AssistantAgent(
 )
 
 # code_writer_agent_system_message = code_writer_agent.system_message
-# code_writer_agent_system_message += executor.format_functions_for_prompt()
+formatted_funcs = executor.format_functions_for_prompt()
+
 # 
 # code_writer_agent = AssistantAgent(
 #     name="code_writer_agent",
@@ -195,10 +151,12 @@ code_writer_agent = AssistantAgent(
 
 
 # Code executor agent
-code_executor_agent = UserProxyAgent( 
+# code_executor_agent = UserProxyAgent( 
+code_executor_agent = ConversableAgent(
     name="code_executor_agent",
     llm_config=False,
-    code_execution_config={"executor": executor},
+    # code_execution_config={"executor": executor},
+    # code_execution_config={"work_dir":"coding", "use_docker":False}
     human_input_mode="ALWAYS",
     default_auto_reply=
     "Please continue. If everything is done, reply 'TERMINATE'.",
@@ -352,6 +310,17 @@ IndexError: list index out of range
 #     trigger = code_writer_agent,
 #     )
 
+
+# message = input("Enter message: ")
+
+message += f"""
+{formatted_funcs}
+
+As far as possible, 
+1) avoid listing ALL files, 
+2) reading full files,
+3) asking the user to make changes to the code.
+"""
 
 chat_result = code_executor_agent.initiate_chat(
     code_writer_agent,

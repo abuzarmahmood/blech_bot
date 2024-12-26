@@ -58,6 +58,7 @@ def search_and_replace(
         os.remove(file_path + '.bak')
         return False
 
+    print('Search and replace successful')
     return True
 
 def listdir(
@@ -70,7 +71,7 @@ def listdir(
         - Extension (optional) : Only return files with the given extension
     """
     if extension:
-        ext_str = f"-iname '*.{extension}'"
+        ext_str = f"-iname '*{extension}'"
     else:
         ext_str = ""
     run_str = f"find {directory} " + ext_str
@@ -78,6 +79,27 @@ def listdir(
     # out = os.system(run_str)
     out = os.popen(run_str).read() 
     return out
+
+def search_for_file(
+        directory : str,
+        filename : str,
+        ) -> str:
+    """Search for a file in a directory
+    Inputs:
+        - Directory : Path to directory
+        - Filename : Name of file
+
+    Returns:
+        - Path to file
+    """
+    run_str = f"find {directory} -iname {filename}"
+    print(run_str)
+    # out = os.system(run_str)
+    out = os.popen(run_str).read()
+    if out:
+        return out
+    else:
+        return "File not found"
 
 def readfile(filepath : str) -> str:
     """Read the contents of a file
@@ -87,6 +109,13 @@ def readfile(filepath : str) -> str:
     with open(filepath, 'r') as file:
         data = file.read()
     return data
+
+def git_fetch() -> str:
+    """Fetch from git
+    """
+    # out = os.system("git fetch")
+    out = os.popen("git fetch").read()
+    return out
 
 def get_current_git_commit() -> str:
     """Get the current git commit
@@ -101,5 +130,96 @@ def change_git_commit(commit: str) -> str:
         - Commit
     """
     # os.system(f"git checkout {commit}")
+    git_fetch()
     out = os.popen(f"git checkout {commit}").read()
     return out
+
+def get_func_code(
+        module_path : str,
+        func_name : str,
+        ) -> str:
+    """Get the code for a function
+    Needs to load the module and get the source code for the function
+
+    Inputs:
+        - module_path : Path to module
+        - func_name : Name of function
+    
+    Returns:
+        - Code for function
+    """
+    import inspect
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("module.name", module_path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    func = getattr(module, func_name)
+    return inspect.getsource(func)
+
+def get_func_code_2(
+        module_path : str,
+        func_name : str,
+        ) -> str:
+    """Use ast to get the code for a function
+
+    Inputs:
+        - module_path : Path to module
+        - func_name : Name of function
+
+    Returns:
+        - Code for function
+    """
+    import ast
+    with open(module_path, 'r') as file:
+        tree = ast.parse(file.read())
+    wanted_func = None
+    for node in tree.body:
+        if isinstance(node, ast.FunctionDef) and node.name == func_name:
+            wanted_func = node
+            break
+    if wanted_func is None:
+        return "Function not found, it may be a class method or not in the file"
+    else:
+        return ast.unparse(wanted_func)
+
+def get_func_code_3(
+        module_path : str,
+        func_name : str,
+        ) -> str:
+    """Use simple search to get the code for a function
+
+    Inputs:
+        - module_path : Path to module
+        - func_name : Name of function
+
+    Returns:
+        - Code for function
+    """
+
+    module_path = '/home/abuzarmahmood/projects/blech_clust/utils/ephys_data/ephys_data.py'
+    func_name = 'get_sequestered_spikes'
+
+    with open(module_path, 'r') as file:
+        lines = file.readlines()
+
+    # Find all function definitions
+    import re
+    match_pattern = re.compile(r'def\s+.*\(')
+    func_defs = re.findall(match_pattern, "\n".join(lines)) 
+    # Get line numbers for each function definition
+    func_def_lines = [i for i, line in enumerate(lines) if match_pattern.findall(line)]
+    func_def_line_map = {func_def_lines[i]: func_defs[i] for i in range(len(func_defs))}
+
+    # Find range of lines for wanted function
+    for i, this_num in enumerate(func_def_lines):
+        if func_name in func_def_line_map[this_num]:
+            start_line = this_num
+            try:
+                end_line = func_def_lines[i+1] - 1
+            except IndexError:
+                end_line = len(lines)
+            break
+
+    # Get code for function
+    code = "".join(lines[start_line:end_line])
+    return code
