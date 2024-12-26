@@ -5,11 +5,20 @@ Tools for the agents to use.
 import os
 import sys
 
+src_dir = os.path.dirname(os.path.abspath(__file__))
+
 def get_blech_clust_path() -> str:
     """
     Return path to blech_clust repo
     """
-    return open('blech_clust_path.txt', 'r').read().strip() 
+    blech_path_path = os.path.join(src_dir, 'blech_clust_path.txt')
+    print(f'Looking for blech_clust_path.txt at {blech_path_path}')
+    if not os.path.exists(blech_path_path):
+        print("blech_clust_path.txt not found")
+        return 'blech_clust_path.txt not found'
+    blech_path = open(blech_path_path, 'r').read().strip() 
+    print(f'blech_clust_path.txt found, path: {blech_path}')
+    return blech_path
 
 def search_and_replace(
         file_path : str,

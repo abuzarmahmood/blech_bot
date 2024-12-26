@@ -7,6 +7,11 @@ Agent to:
     - files involved in error or feature request
 - Suggest solutions if enough information is provided
 
+# Installation
+- Clone the repository
+- Install `make install`
+- Run the bot `make run`
+
 # Operations can be broken down into a multi-agent system:
 - **Agent 1**
 - - Gathers sufficient information to assess the issue

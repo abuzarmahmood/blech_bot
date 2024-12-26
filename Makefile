@@ -2,6 +2,8 @@
 
 VENV_NAME=venv
 PYTHON=python3
+MAKEFILE_DIR=$(dir $(realpath $(firstword $(MAKEFILE_LIST))))
+SRC_DIR=$(MAKEFILE_DIR)src
 
 venv: install
 
@@ -18,4 +20,4 @@ clean:
 	rm -rf $(VENV_NAME)
 
 run:
-	./$(VENV_NAME)/bin/python src/run_flow.py
+	./$(VENV_NAME)/bin/python $(SRC_DIR)/run_flow.py
