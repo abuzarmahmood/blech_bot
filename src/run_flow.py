@@ -18,6 +18,10 @@ from autogen import ConversableAgent, AssistantAgent, UserProxyAgent
 from autogen.code_utils import create_virtual_env
 from pprint import pprint as pp
 
+# Start logging with logger_type and the filename to log to
+logging_session_id = autogen.runtime_logging.start(logger_type="file", config={"filename": "runtime.log"})
+print("Logging session ID: " + str(logging_session_id))
+
 from tools import (
     get_blech_clust_path,
     search_and_replace,
@@ -108,6 +112,8 @@ for this_func in tool_funcs:
 # Start the chat
 ##############################
 
+message = input("Enter the message to start the chat: ")
+
 message += f"""
 {formatted_funcs}
 
@@ -121,3 +127,5 @@ chat_result = code_executor_agent.initiate_chat(
     code_writer_agent,
     message=message,
         )
+
+autogen.runtime_logging.stop()
