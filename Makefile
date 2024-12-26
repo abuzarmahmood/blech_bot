@@ -16,3 +16,6 @@ activate:
 
 clean:
 	rm -rf $(VENV_NAME)
+
+run:
+	./$(VENV_NAME)/bin/python src/run_flow.py
