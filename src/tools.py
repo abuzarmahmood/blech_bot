@@ -226,9 +226,6 @@ def get_func_code_3(
         - Code for function
     """
 
-    module_path = '/home/abuzarmahmood/projects/blech_clust/utils/ephys_data/ephys_data.py'
-    func_name = 'get_sequestered_spikes'
-
     with open(module_path, 'r') as file:
         lines = file.readlines()
 
