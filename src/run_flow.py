@@ -33,6 +33,7 @@ print("Logging session ID: " + str(logging_session_id))
 
 from tools import (
     get_blech_clust_path,
+    search_for_pattern,
     search_and_replace,
     get_func_code_3,
     readlines,
@@ -53,6 +54,7 @@ if blech_clust_path == '':
 
 tool_funcs = [
     get_blech_clust_path,
+    search_for_pattern,
     search_and_replace,
     get_func_code_3,
     readlines,

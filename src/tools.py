@@ -20,6 +20,27 @@ def get_blech_clust_path() -> str:
     print(f'blech_clust_path.txt found, path: {blech_path}')
     return blech_path
 
+def search_for_pattern(
+        search_dir : str,
+        pattern : str,
+        ) -> str:
+    """
+    Search for a pattern in a directory.
+    Can only search for python files.
+
+    Inputs:
+        - search_dir : Directory to search
+        - pattern : Pattern to search for
+
+    Returns:
+        - Path to files with pattern
+    """
+    run_str = f"grep -irl {pattern} {search_dir} --include='*.py'"
+    print(run_str)
+    # out = os.system(run_str)
+    out = os.popen(run_str).read()
+    return out
+
 def search_and_replace(
         file_path : str,
         search_text : str, 
