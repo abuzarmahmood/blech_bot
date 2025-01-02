@@ -40,6 +40,7 @@ from tools import (
     listdir,
     search_for_file,
     readfile,
+    get_commit_history,
     get_current_git_commit,
     change_git_commit,
 )
@@ -62,6 +63,7 @@ tool_funcs = [
     search_for_file,
     readfile,
     get_current_git_commit,
+    get_commit_history,
     change_git_commit,
     ]
 
