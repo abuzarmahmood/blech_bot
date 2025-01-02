@@ -161,28 +161,66 @@ def readfile(filepath : str) -> str:
         data = file.read()
     return data
 
-def git_fetch() -> str:
+def git_fetch(
+        blech_clust_path : str,
+              ) -> str:
     """Fetch from git
+
+    Inputs:
+        - blech_clust_path : Path to blech_clust
+
+    Returns:
+        - Output from git fetch
     """
-    # out = os.system("git fetch")
-    out = os.popen("git fetch").read()
+    cmd_str = f"git -C {blech_clust_path} fetch"
+    out = os.popen(cmd_str).read()
     return out
 
-def get_current_git_commit() -> str:
+def get_commit_history(
+        blech_clust_path : str,
+        max_num : int = 10,
+        ) -> str:
+    """Get the commit history
+
+    Inputs:
+        - blech_clust_path : Path to blech_clust
+        - max_num : Maximum number of commits to show
+
+    Returns:
+        - Commit history
+    """
+    cmd_str = \
+            f"git -C {blech_clust_path} log --graph  --pretty=format:'%C(auto)%h%d (%cr) %s' --abbrev-commit"
+    out = os.popen(cmd_str).read()
+    out = "\n".join(out.split("\n")[:max_num])
+    return out
+
+def get_current_git_commit(
+        blech_clust_path : str,
+        ) -> str:
     """Get the current git commit
+
+    Inputs:
+        - blech_clust_path : Path to blech_clust
+
+    Returns:
+        - Current commit
     """
-    # out = os.system("git rev-parse HEAD")
-    out = os.popen("git rev-parse HEAD").read()
+    cmd_str = f"git -C {blech_clust_path} rev-parse HEAD"
+    out = os.popen(cmd_str).read()
     return out
 
-def change_git_commit(commit: str) -> str:
+def change_git_commit(
+        blech_clust_path : str,
+        commit: str) -> str:
     """Change the current git commit
     Inputs:
         - Commit
     """
     # os.system(f"git checkout {commit}")
-    git_fetch()
-    out = os.popen(f"git checkout {commit}").read()
+    git_fetch(blech_clust_path)
+    cmd_str = f"git -C {blech_clust_path} checkout {commit}"
+    out = os.popen(cmd_str).read()
     return out
 
 def get_func_code(
