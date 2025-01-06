@@ -147,6 +147,9 @@ for this_func in tool_funcs:
 # Start the chat
 ##############################
 
+print('============================================')
+for _ in range(3):
+    print()
 
 print('Enter the message for the code writer agent: (type END to finish)')
 lines = []
