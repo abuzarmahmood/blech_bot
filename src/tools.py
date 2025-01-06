@@ -386,58 +386,58 @@ def get_func_code(
     code = "".join(lines[start_line:end_line])
     return code
 
-def llm_ception(
-    system_message : str,
-    command_message : str,
-    func_list : list = tool_funcs,
-    ) -> str:
-    """
-    Create a transient agent that will perform a single task
-
-    Inputs:
-    system_message : str : system message for the transient agent
-        - Following will be appended to the system message:
-            - You are a transient agent that will perform a single task
-            - Do not do more than asked"
-    command_message : str : command message for the transient agent
-
-    Outputs:
-    content : str : content of the chat
-    """
-
-    system_message += """
-    You are a transient agent that will perform a single task
-    Do not do more than asked
-    """
-
-    transient_agent = AssistantAgent(
-        name="transient_agent",
-        llm_config=llm_config,
-        code_execution_config=False,
-        human_input_mode="NEVER",
-        system_message = system_message,
-    )
-    code_executor_agent = ConversableAgent(
-        name="code_executor_agent",
-        llm_config=False,
-        human_input_mode="NEVER",
-        default_auto_reply=
-        "Please continue. If everything is done, reply 'TERMINATE'.",
-    )
-    for this_func in func_list:
-        transient_agent.register_for_llm(
-                name = this_func.__name__, 
-                description = this_func.__doc__,
-                )(this_func)
-        code_executor_agent.register_for_execution(
-                name=this_func.__name__)(this_func)
-
-    chat_result = transient_agent.initiate_chat(
-        code_executor_agent,
-        message=command_message,
-            )
-
-    content = "\n".join([msg['content'] for msg in chat_result.chat_history \
-            if msg['content'] is not None])
-
-    return content
+# def llm_ception(
+#     system_message : str,
+#     command_message : str,
+#     func_list : list = tool_funcs,
+#     ) -> str:
+#     """
+#     Create a transient agent that will perform a single task
+# 
+#     Inputs:
+#     system_message : str : system message for the transient agent
+#         - Following will be appended to the system message:
+#             - You are a transient agent that will perform a single task
+#             - Do not do more than asked"
+#     command_message : str : command message for the transient agent
+# 
+#     Outputs:
+#     content : str : content of the chat
+#     """
+# 
+#     system_message += """
+#     You are a transient agent that will perform a single task
+#     Do not do more than asked
+#     """
+# 
+#     transient_agent = AssistantAgent(
+#         name="transient_agent",
+#         llm_config=llm_config,
+#         code_execution_config=False,
+#         human_input_mode="NEVER",
+#         system_message = system_message,
+#     )
+#     code_executor_agent = ConversableAgent(
+#         name="code_executor_agent",
+#         llm_config=False,
+#         human_input_mode="NEVER",
+#         default_auto_reply=
+#         "Please continue. If everything is done, reply 'TERMINATE'.",
+#     )
+#     for this_func in func_list:
+#         transient_agent.register_for_llm(
+#                 name = this_func.__name__, 
+#                 description = this_func.__doc__,
+#                 )(this_func)
+#         code_executor_agent.register_for_execution(
+#                 name=this_func.__name__)(this_func)
+# 
+#     chat_result = transient_agent.initiate_chat(
+#         code_executor_agent,
+#         message=command_message,
+#             )
+# 
+#     content = "\n".join([msg['content'] for msg in chat_result.chat_history \
+#             if msg['content'] is not None])
+# 
+#     return content
