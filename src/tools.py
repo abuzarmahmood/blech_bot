@@ -91,6 +91,76 @@ def search_and_replace(
     print('Search and replace successful')
     return True
 
+def modify_lines(
+        file_path : str,
+        start_line : int,
+        end_line : int,
+        new_lines : str,
+        ) -> bool:
+    """
+    Modify lines in a file
+    Don't use escape characters
+
+    - Can delete lines by setting new_lines to empty string
+    - Can add lines by setting start_line = end_line
+    - Can modify lines by setting start_line != end_line
+
+    Inputs:
+        - file_path : Path to file
+        - start_line : Start line
+        - end_line : End line (inclusive)
+        - new_lines : New lines to replace with
+
+    Returns:
+        - True if successful, False otherwise
+    """
+
+    assert start_line <= end_line, "Start line must be less than or equal to end line"
+
+    # make backup
+    import shutil
+    import ast
+
+    shutil.copy2(file_path, file_path + '.bak')
+
+    with open(file_path, 'r') as file:
+        lines = file.readlines()
+
+    # Check for exact match
+    if len(lines) < end_line:
+        print(f"End line greater than number of lines in file: {file_path}")
+        return False
+
+    init_lines = lines[:start_line]
+    end_lines = lines[end_line+1:]
+    mod_lines = new_lines.split('\n')
+    mod_lines = [line + '\n' for line in mod_lines]
+
+    lines = init_lines + mod_lines + end_lines
+
+    with open(file_path, 'w') as file:
+        # file.write("".join(lines))
+        file.writelines(lines)
+
+    # Check that file is valid
+    try:
+        ast.parse("".join(lines))
+    except SyntaxError as e:
+        print('Editing file created a syntax error')
+        print('View around modified lines')
+        print_start = max(0, start_line - 5)
+        print_end = min(start_line + len(mod_lines) + 5, len(lines))
+        print("".join(f"{i:03}: {line}" for i, line in enumerate(lines[print_start:print_end])))
+        print(f"Syntax error in file: {file_path}")
+        print(e)
+        # Restore backup
+        shutil.copy2(file_path + '.bak', file_path)
+        os.remove(file_path + '.bak')
+        return False
+
+    print('Modify lines successful')
+    return True
+
 def readlines(
         file_path : str,
         start_line : int,
@@ -143,7 +213,7 @@ def search_for_file(
     Returns:
         - Path to file
     """
-    run_str = f"find {directory} -iname {filename}"
+    run_str = f"find {directory} -iname '*{filename}*'"
     print(run_str)
     # out = os.system(run_str)
     out = os.popen(run_str).read()
@@ -153,12 +223,15 @@ def search_for_file(
         return "File not found"
 
 def readfile(filepath : str) -> str:
-    """Read the contents of a file
+    """
+       Prints the contents of the file along with line numbers
     Inputs:
         - Filepath
     """
     with open(filepath, 'r') as file:
         data = file.read()
+    data = data.split('\n')
+    data = "\n".join([f"{i:04}: {line}" for i, line in enumerate(data)])
     return data
 
 def git_fetch(
@@ -223,55 +296,58 @@ def change_git_commit(
     out = os.popen(cmd_str).read()
     return out
 
+def create_file(
+        file_path : str,
+        data : str,
+        ) -> bool:
+    """Create a file with given data
+
+    Inputs:
+        - file_path : Path to file
+        - data : Data to write
+
+    Returns:
+        - True if successful, False otherwise
+    """
+    try:
+        with open(file_path, 'w') as file:
+            file.write(data)
+        print(f"Data written to file: {file_path}")
+        return True
+    except Exception as e:
+        print(f"Error writing to file: {file_path}")
+        print(e)
+        return False
+
+def run_python_script(
+        script_path : str,
+        ) -> str:
+    """Run a script
+
+    Inputs:
+        - script_path : Path to script
+
+    Returns:
+        - Output from script
+    """
+    out = os.popen(f"python {script_path}").read()
+    return out
+
+def run_bash_script(
+        script_path : str,
+        ) -> str:
+    """Run a bash script
+
+    Inputs:
+        - script_path : Path to script
+
+    Returns:
+        - Output from script
+    """
+    out = os.popen(f"bash {script_path}").read()
+    return out
+
 def get_func_code(
-        module_path : str,
-        func_name : str,
-        ) -> str:
-    """Get the code for a function
-    Needs to load the module and get the source code for the function
-
-    Inputs:
-        - module_path : Path to module
-        - func_name : Name of function
-    
-    Returns:
-        - Code for function
-    """
-    import inspect
-    import importlib.util
-    spec = importlib.util.spec_from_file_location("module.name", module_path)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    func = getattr(module, func_name)
-    return inspect.getsource(func)
-
-def get_func_code_2(
-        module_path : str,
-        func_name : str,
-        ) -> str:
-    """Use ast to get the code for a function
-
-    Inputs:
-        - module_path : Path to module
-        - func_name : Name of function
-
-    Returns:
-        - Code for function
-    """
-    import ast
-    with open(module_path, 'r') as file:
-        tree = ast.parse(file.read())
-    wanted_func = None
-    for node in tree.body:
-        if isinstance(node, ast.FunctionDef) and node.name == func_name:
-            wanted_func = node
-            break
-    if wanted_func is None:
-        return "Function not found, it may be a class method or not in the file"
-    else:
-        return ast.unparse(wanted_func)
-
-def get_func_code_3(
         module_path : str,
         func_name : str,
         ) -> str:
@@ -309,3 +385,59 @@ def get_func_code_3(
     # Get code for function
     code = "".join(lines[start_line:end_line])
     return code
+
+def llm_ception(
+    system_message : str,
+    command_message : str,
+    func_list : list = tool_funcs,
+    ) -> str:
+    """
+    Create a transient agent that will perform a single task
+
+    Inputs:
+    system_message : str : system message for the transient agent
+        - Following will be appended to the system message:
+            - You are a transient agent that will perform a single task
+            - Do not do more than asked"
+    command_message : str : command message for the transient agent
+
+    Outputs:
+    content : str : content of the chat
+    """
+
+    system_message += """
+    You are a transient agent that will perform a single task
+    Do not do more than asked
+    """
+
+    transient_agent = AssistantAgent(
+        name="transient_agent",
+        llm_config=llm_config,
+        code_execution_config=False,
+        human_input_mode="NEVER",
+        system_message = system_message,
+    )
+    code_executor_agent = ConversableAgent(
+        name="code_executor_agent",
+        llm_config=False,
+        human_input_mode="NEVER",
+        default_auto_reply=
+        "Please continue. If everything is done, reply 'TERMINATE'.",
+    )
+    for this_func in func_list:
+        transient_agent.register_for_llm(
+                name = this_func.__name__, 
+                description = this_func.__doc__,
+                )(this_func)
+        code_executor_agent.register_for_execution(
+                name=this_func.__name__)(this_func)
+
+    chat_result = transient_agent.initiate_chat(
+        code_executor_agent,
+        message=command_message,
+            )
+
+    content = "\n".join([msg['content'] for msg in chat_result.chat_history \
+            if msg['content'] is not None])
+
+    return content

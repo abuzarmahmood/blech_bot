@@ -35,7 +35,8 @@ from tools import (
     get_blech_clust_path,
     search_for_pattern,
     search_and_replace,
-    get_func_code_3,
+    modify_lines,
+    get_func_code,
     readlines,
     listdir,
     search_for_file,
@@ -43,6 +44,9 @@ from tools import (
     get_commit_history,
     get_current_git_commit,
     change_git_commit,
+    create_file,
+    run_python_script,
+    run_bash_script,
 )
 
 blech_clust_path = get_blech_clust_path()
@@ -52,12 +56,12 @@ if blech_clust_path == '':
 ##############################
 # Create agents
 ##############################
-
 tool_funcs = [
     get_blech_clust_path,
     search_for_pattern,
     search_and_replace,
-    get_func_code_3,
+    modify_lines,
+    get_func_code,
     readlines,
     listdir,
     search_for_file,
@@ -65,7 +69,18 @@ tool_funcs = [
     get_current_git_commit,
     get_commit_history,
     change_git_commit,
+    create_file,
+    run_python_script,
+    run_bash_script,
     ]
+
+
+# tool_funcs.append(llm_ception)
+
+# chat_result = llm_ception(
+#     system_message = '',
+#     command_message = 'Get the path to the blech_clust repo',
+#     )
 
 executor = LocalCommandLineCodeExecutor(
     # virtual_env_context=venv_context,
@@ -125,6 +140,7 @@ for this_func in tool_funcs:
             )(this_func)
     code_executor_agent.register_for_execution(
             name=this_func.__name__)(this_func)
+
 
 
 ##############################
