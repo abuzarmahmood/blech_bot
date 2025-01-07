@@ -11,6 +11,13 @@ Agent to:
 - Clone the repository
 - Install `make install`
 - Update `src/blech_clust_path.txt` with the path to the blech_clust repository
+- Set up your OpenAI API key:
+  - Get your API key from [OpenAI](https://platform.openai.com/api-keys)
+  - Set it as an environment variable:
+    ```bash
+    export OPENAI_API_KEY='your-api-key-here'
+    ```
+  - For permanent setup, add the above line to your `~/.bashrc` or `~/.zshrc`
 - Run the bot `make run`
 
 # Operations can be broken down into a multi-agent system:

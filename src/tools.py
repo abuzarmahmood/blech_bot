@@ -7,6 +7,7 @@ import sys
 
 src_dir = os.path.dirname(os.path.abspath(__file__))
 
+
 def get_blech_clust_path() -> str:
     """
     Return path to blech_clust repo
@@ -16,14 +17,15 @@ def get_blech_clust_path() -> str:
     if not os.path.exists(blech_path_path):
         print("blech_clust_path.txt not found")
         return 'blech_clust_path.txt not found'
-    blech_path = open(blech_path_path, 'r').read().strip() 
+    blech_path = open(blech_path_path, 'r').read().strip()
     print(f'blech_clust_path.txt found, path: {blech_path}')
     return blech_path
 
+
 def search_for_pattern(
-        search_dir : str,
-        pattern : str,
-        ) -> str:
+        search_dir: str,
+        pattern: str,
+) -> str:
     """
     Search for a pattern in a directory.
     Can only search for python files.
@@ -41,11 +43,12 @@ def search_for_pattern(
     out = os.popen(run_str).read()
     return out
 
+
 def search_and_replace(
-        file_path : str,
-        search_text : str, 
-        replace_text : str,
-        ) -> bool:
+        file_path: str,
+        search_text: str,
+        replace_text: str,
+) -> bool:
     """
     Search and replace text in a file
 
@@ -91,12 +94,13 @@ def search_and_replace(
     print('Search and replace successful')
     return True
 
+
 def modify_lines(
-        file_path : str,
-        start_line : int,
-        end_line : int,
-        new_lines : str,
-        ) -> bool:
+        file_path: str,
+        start_line: int,
+        end_line: int,
+        new_lines: str,
+) -> bool:
     """
     Modify lines in a file
     Don't use escape characters
@@ -150,7 +154,8 @@ def modify_lines(
         print('View around modified lines')
         print_start = max(0, start_line - 5)
         print_end = min(start_line + len(mod_lines) + 5, len(lines))
-        print("".join(f"{i:03}: {line}" for i, line in enumerate(lines[print_start:print_end])))
+        print("".join(f"{i:03}: {line}" for i,
+              line in enumerate(lines[print_start:print_end])))
         print(f"Syntax error in file: {file_path}")
         print(e)
         # Restore backup
@@ -161,11 +166,12 @@ def modify_lines(
     print('Modify lines successful')
     return True
 
+
 def readlines(
-        file_path : str,
-        start_line : int,
-        end_line : int,
-        ) -> str:
+        file_path: str,
+        start_line: int,
+        end_line: int,
+) -> str:
     """
     Read lines from a file
 
@@ -182,10 +188,11 @@ def readlines(
 
     return "".join(lines[start_line:end_line])
 
+
 def listdir(
-        directory : str, 
-        extension : str = None, 
-        ) -> str: 
+        directory: str,
+        extension: str = None,
+) -> str:
     """List contents of a directory
     Inputs:
         - Directory : Path to directory
@@ -198,13 +205,14 @@ def listdir(
     run_str = f"find {directory} " + ext_str
     print(run_str)
     # out = os.system(run_str)
-    out = os.popen(run_str).read() 
+    out = os.popen(run_str).read()
     return out
 
+
 def search_for_file(
-        directory : str,
-        filename : str,
-        ) -> str:
+        directory: str,
+        filename: str,
+) -> str:
     """Search for a file in a directory
     Inputs:
         - Directory : Path to directory
@@ -222,7 +230,8 @@ def search_for_file(
     else:
         return "File not found"
 
-def readfile(filepath : str) -> str:
+
+def readfile(filepath: str) -> str:
     """
        Prints the contents of the file along with line numbers
     Inputs:
@@ -234,9 +243,10 @@ def readfile(filepath : str) -> str:
     data = "\n".join([f"{i:04}: {line}" for i, line in enumerate(data)])
     return data
 
+
 def git_fetch(
-        blech_clust_path : str,
-              ) -> str:
+    blech_clust_path: str,
+) -> str:
     """Fetch from git
 
     Inputs:
@@ -249,10 +259,11 @@ def git_fetch(
     out = os.popen(cmd_str).read()
     return out
 
+
 def get_commit_history(
-        blech_clust_path : str,
-        max_num : int = 10,
-        ) -> str:
+        blech_clust_path: str,
+        max_num: int = 10,
+) -> str:
     """Get the commit history
 
     Inputs:
@@ -263,14 +274,15 @@ def get_commit_history(
         - Commit history
     """
     cmd_str = \
-            f"git -C {blech_clust_path} log --graph  --pretty=format:'%C(auto)%h%d (%cr) %s' --abbrev-commit"
+        f"git -C {blech_clust_path} log --graph  --pretty=format:'%C(auto)%h%d (%cr) %s' --abbrev-commit"
     out = os.popen(cmd_str).read()
     out = "\n".join(out.split("\n")[:max_num])
     return out
 
+
 def get_current_git_commit(
-        blech_clust_path : str,
-        ) -> str:
+        blech_clust_path: str,
+) -> str:
     """Get the current git commit
 
     Inputs:
@@ -283,8 +295,9 @@ def get_current_git_commit(
     out = os.popen(cmd_str).read()
     return out
 
+
 def change_git_commit(
-        blech_clust_path : str,
+        blech_clust_path: str,
         commit: str) -> str:
     """Change the current git commit
     Inputs:
@@ -296,10 +309,11 @@ def change_git_commit(
     out = os.popen(cmd_str).read()
     return out
 
+
 def create_file(
-        file_path : str,
-        data : str,
-        ) -> bool:
+        file_path: str,
+        data: str,
+) -> bool:
     """Create a file with given data
 
     Inputs:
@@ -319,9 +333,10 @@ def create_file(
         print(e)
         return False
 
+
 def run_python_script(
-        script_path : str,
-        ) -> str:
+        script_path: str,
+) -> str:
     """Run a script
 
     Inputs:
@@ -333,9 +348,10 @@ def run_python_script(
     out = os.popen(f"python {script_path}").read()
     return out
 
+
 def run_bash_script(
-        script_path : str,
-        ) -> str:
+        script_path: str,
+) -> str:
     """Run a bash script
 
     Inputs:
@@ -347,10 +363,11 @@ def run_bash_script(
     out = os.popen(f"bash {script_path}").read()
     return out
 
+
 def get_func_code(
-        module_path : str,
-        func_name : str,
-        ) -> str:
+        module_path: str,
+        func_name: str,
+) -> str:
     """Use simple search to get the code for a function
 
     Inputs:
@@ -367,10 +384,12 @@ def get_func_code(
     # Find all function definitions
     import re
     match_pattern = re.compile(r'def\s+.*\(')
-    func_defs = re.findall(match_pattern, "\n".join(lines)) 
+    func_defs = re.findall(match_pattern, "\n".join(lines))
     # Get line numbers for each function definition
-    func_def_lines = [i for i, line in enumerate(lines) if match_pattern.findall(line)]
-    func_def_line_map = {func_def_lines[i]: func_defs[i] for i in range(len(func_defs))}
+    func_def_lines = [i for i, line in enumerate(
+        lines) if match_pattern.findall(line)]
+    func_def_line_map = {func_def_lines[i]: func_defs[i]
+                         for i in range(len(func_defs))}
 
     # Find range of lines for wanted function
     for i, this_num in enumerate(func_def_lines):
@@ -393,23 +412,23 @@ def get_func_code(
 #     ) -> str:
 #     """
 #     Create a transient agent that will perform a single task
-# 
+#
 #     Inputs:
 #     system_message : str : system message for the transient agent
 #         - Following will be appended to the system message:
 #             - You are a transient agent that will perform a single task
 #             - Do not do more than asked"
 #     command_message : str : command message for the transient agent
-# 
+#
 #     Outputs:
 #     content : str : content of the chat
 #     """
-# 
+#
 #     system_message += """
 #     You are a transient agent that will perform a single task
 #     Do not do more than asked
 #     """
-# 
+#
 #     transient_agent = AssistantAgent(
 #         name="transient_agent",
 #         llm_config=llm_config,
@@ -426,18 +445,18 @@ def get_func_code(
 #     )
 #     for this_func in func_list:
 #         transient_agent.register_for_llm(
-#                 name = this_func.__name__, 
+#                 name = this_func.__name__,
 #                 description = this_func.__doc__,
 #                 )(this_func)
 #         code_executor_agent.register_for_execution(
 #                 name=this_func.__name__)(this_func)
-# 
+#
 #     chat_result = transient_agent.initiate_chat(
 #         code_executor_agent,
 #         message=command_message,
 #             )
-# 
+#
 #     content = "\n".join([msg['content'] for msg in chat_result.chat_history \
 #             if msg['content'] is not None])
-# 
+#
 #     return content
