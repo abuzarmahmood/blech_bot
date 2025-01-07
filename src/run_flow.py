@@ -3,34 +3,6 @@ Create workflow for ai agents
 """
 
 # We'll always have to start by creating a llm_config object to configure our agents
-import os
-api_key = os.getenv('OPENAI_API_KEY')
-llm_config = {
-    "model": "gpt-4o", 
-    "api_key": api_key,
-    "cache": None
-    }
-
-import autogen
-from autogen.code_utils import create_virtual_env
-from autogen.coding import CodeBlock, LocalCommandLineCodeExecutor
-from autogen import ConversableAgent, AssistantAgent, UserProxyAgent
-from autogen.code_utils import create_virtual_env
-from pprint import pprint as pp
-import datetime
-
-# Start logging with logger_type and the filename to log to
-# Get username
-user = os.path.basename(os.path.expanduser('~'))
-machine = os.uname().nodename
-timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-log_filename = f"runtime_{user}_{machine}_{timestamp}.log"
-logging_session_id = autogen.runtime_logging.start(
-        logger_type="file", 
-        config={"filename": log_filename},
-        )
-print("Logging session ID: " + str(logging_session_id))
-
 from tools import (
     get_blech_clust_path,
     search_for_pattern,
@@ -48,10 +20,38 @@ from tools import (
     run_python_script,
     run_bash_script,
 )
+import datetime
+from pprint import pprint as pp
+from autogen import ConversableAgent, AssistantAgent, UserProxyAgent
+from autogen.coding import CodeBlock, LocalCommandLineCodeExecutor
+from autogen.code_utils import create_virtual_env
+import autogen
+import os
+api_key = os.getenv('OPENAI_API_KEY')
+llm_config = {
+    "model": "gpt-4o",
+    "api_key": api_key,
+    "cache": None
+}
+
+
+# Start logging with logger_type and the filename to log to
+# Get username
+user = os.path.basename(os.path.expanduser('~'))
+machine = os.uname().nodename
+timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+log_filename = f"runtime_{user}_{machine}_{timestamp}.log"
+logging_session_id = autogen.runtime_logging.start(
+    logger_type="file",
+    config={"filename": log_filename},
+)
+print("Logging session ID: " + str(logging_session_id))
+
 
 blech_clust_path = get_blech_clust_path()
 if blech_clust_path == '':
-    raise ValueError("Blech clust path not found, please set the path in the src directory")
+    raise ValueError(
+        "Blech clust path not found, please set the path in the src directory")
 
 ##############################
 # Create agents
@@ -72,7 +72,7 @@ tool_funcs = [
     create_file,
     run_python_script,
     run_bash_script,
-    ]
+]
 
 
 # tool_funcs.append(llm_ception)
@@ -89,9 +89,11 @@ executor = LocalCommandLineCodeExecutor(
     functions=tool_funcs,
 )
 
+
 def reflection_message(recipient, messages, sender, config):
-    return f'''Review the following content. 
+    return f'''Review the following content.
             \n\n {recipient.chat_messages_for_summary(sender)[-1]['content']}'''
+
 
 system_message = """
 You are a helpful AI assistant called "BlechBot", that edits code to solve issues for the blech_clust repo.
@@ -114,12 +116,12 @@ Reply "TERMINATE" in the end when everything is done.
 
 # Agent that writes code
 code_writer_agent = AssistantAgent(
-# code_writer_agent = ConversableAgent(
+    # code_writer_agent = ConversableAgent(
     name="code_writer_agent",
     llm_config=llm_config,
     code_execution_config=False,
     human_input_mode="NEVER",
-    system_message = system_message,
+    system_message=system_message,
 )
 
 formatted_funcs = executor.format_functions_for_prompt()
@@ -128,19 +130,17 @@ code_executor_agent = ConversableAgent(
     name="code_executor_agent",
     llm_config=False,
     human_input_mode="ALWAYS",
-    default_auto_reply=
-    "Please continue. If everything is done, reply 'TERMINATE'.",
+    default_auto_reply="Please continue. If everything is done, reply 'TERMINATE'.",
 )
 
 # Register the tool signature with the assistant agent.
 for this_func in tool_funcs:
     code_writer_agent.register_for_llm(
-            name = this_func.__name__, 
-            description = this_func.__doc__,
-            )(this_func)
+        name=this_func.__name__,
+        description=this_func.__doc__,
+    )(this_func)
     code_executor_agent.register_for_execution(
-            name=this_func.__name__)(this_func)
-
+        name=this_func.__name__)(this_func)
 
 
 ##############################
@@ -164,8 +164,8 @@ message = '\n'.join(lines)
 message += f"""
 {formatted_funcs}
 
-As far as possible, avoid the following: 
-1) listing ALL files, 
+As far as possible, avoid the following:
+1) listing ALL files,
 2) reading full files,
 3) asking the user to make changes to the code.
 """
@@ -173,7 +173,7 @@ As far as possible, avoid the following:
 chat_result = code_executor_agent.initiate_chat(
     code_writer_agent,
     message=message,
-        )
+)
 
 usage_including_cached_inference = chat_result.cost['usage_including_cached_inference']
 total_cost = usage_including_cached_inference['total_cost']
