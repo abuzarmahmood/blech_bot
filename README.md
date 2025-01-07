@@ -10,6 +10,7 @@ Agent to:
 # Installation
 - Clone the repository
 - Install `make install`
+- Update `src/blech_clust_path.txt` with the path to the blech_clust repository
 - Run the bot `make run`
 
 # Operations can be broken down into a multi-agent system:
