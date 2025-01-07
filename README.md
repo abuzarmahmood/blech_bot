@@ -51,7 +51,7 @@ The system uses two main agents:
   - `search_and_replace()`: Replace text in files
   - `modify_lines()`: Edit specific line ranges
   - `create_file()`: Create new files
-  
+
 - **File Operations**
   - `readfile()`: Read entire file contents
   - `readlines()`: Read specific line ranges
