@@ -20,29 +20,42 @@ Agent to:
   - For permanent setup, add the above line to your `~/.bashrc` or `~/.zshrc`
 - Run the bot `make run`
 
-# Operations can be broken down into a multi-agent system:
-- **Agent 1**
-- - Gathers sufficient information to assess the issue
-- - - blech_clust version / commit
-- - - files involved in error or feature request
-- **Agent 2**
-- - Loads relevant code-snippets and documentation to use as reference
-- **Agent 3**
-- - Search and replace suggestor
-- - Returns commands to search and replace strings to modify code, given the information provided by Agent 1 and 2
-- **Agent 4**
-- - Suggests solutions based on the information provided by Agent 1, 2, and 3
+# Agent System
+The system uses two main agents:
 
-Agents 1,2 and 3 can be implemented in a nested fashion, where Agent 1 calls Agent 2, and Agent 2 calls Agent 3. Agent 4 can be implemented as a separate agent that calls Agents 1, 2, and 3.
+- **Code Writer Agent**
+  - Analyzes issues and suggests solutions
+  - Uses available tools to inspect and modify code
+  - Writes code and suggests changes
+  - Provides explanations for changes
+
+- **Code Executor Agent**
+  - Executes the suggested changes
+  - Validates code modifications
+  - Reports execution results back to writer agent
 
 # Available Tools:
-- Search and replace tool
-- - Search for a string in a file and replace it with another string
-- Code execution tool
-- - Execute code snippets in a specified environment
-- Web search tool
-- - Search for information on the web
-- Git check tool
-- - Check the status/commit of a git repository
-- Git change tool
-- - Change the statu/commit of a git repository
+- **Repository Management**
+  - `get_blech_clust_path()`: Get path to blech_clust repo
+  - `get_commit_history()`: View git commit history
+  - `get_current_git_commit()`: Get current commit hash
+  - `change_git_commit()`: Switch to different commit
+
+- **Code Search & Analysis**
+  - `search_for_pattern()`: Search for text patterns
+  - `search_for_file()`: Find files by name
+  - `listdir()`: List directory contents
+  - `get_func_code()`: Extract function definitions
+
+- **Code Modification**
+  - `search_and_replace()`: Replace text in files
+  - `modify_lines()`: Edit specific line ranges
+  - `create_file()`: Create new files
+
+- **File Operations**
+  - `readfile()`: Read entire file contents
+  - `readlines()`: Read specific line ranges
+
+- **Code Execution**
+  - `run_python_script()`: Execute Python files
+  - `run_bash_script()`: Execute shell scripts
